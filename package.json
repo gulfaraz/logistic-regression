@@ -1,0 +1,27 @@
+{
+  "name": "logistic-regression",
+  "version": "1.0.0",
+  "description": "JavaScript implementation of Logistic Regression",
+  "main": "gulpfile.js",
+  "scripts": {
+    "start": "gulp",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "logistic",
+    "regression",
+    "machine",
+    "learning",
+    "artificial",
+    "intelligence",
+    "gulfaraz",
+    "yasin"
+  ],
+  "author": "Gulfaraz Yasin",
+  "license": "MIT",
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "mathjs": "^3.12.1",
+    "ml-util": "^1.0.0"
+  }
+}
