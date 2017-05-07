@@ -1,29 +1,35 @@
 var mathjs = require("mathjs");
 
-module.exports = function (allTheta, X) {
+module.exports = function predictOneVsAll(allTheta, X) {
     var m = X._size[0];
     var numberOfLabels = allTheta._size[0];
 
     var onesRow = mathjs.ones(X._size[0], 1);
     X = mathjs.concat(onesRow, X, 1);
 
-    var XProductAllThetaTranspose = mathjs.multiply(X, mathjs.transpose(allTheta));
+    var XProductAllThetaTranspose = mathjs.multiply(
+        X,
+        mathjs.transpose(allTheta)
+    );
 
     var maxIndices = {};
-    mathjs.map(XProductAllThetaTranspose, function (value, index, matrix) {
-        if(!maxIndices[index[0]]) {
-            maxIndices[index[0]] = {
-                value: value,
-                index: 1
+    mathjs.map(
+        XProductAllThetaTranspose,
+        function calculateMaxIndices(value, index, matrix) {
+            if(!maxIndices[index[0]]) {
+                maxIndices[index[0]] = {
+                    value: value,
+                    index: 1
+                }
+            }
+            if(maxIndices[index[0]].value < value) {
+                maxIndices[index[0]] = {
+                    value: value,
+                    index: index[1] + 1
+                };
             }
         }
-        if(maxIndices[index[0]].value < value) {
-            maxIndices[index[0]] = {
-                value: value,
-                index: index[1] + 1
-            };
-        }
-    });
+    );
 
     var sumOfMaximums = 0;
     var sumOfIndices = 0;

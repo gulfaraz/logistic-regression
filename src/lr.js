@@ -1,6 +1,17 @@
 var mathjs = require("mathjs");
+var randomPermutation = require("ml-util/randomPermutation");
 
-module.exports = function () {
+var lrCostFunction = require("./lrCostFunction");
+var oneVsAll = require("./oneVsAll");
+var predictOneVsAll = require("./predictOneVsAll");
+
+var XJSON = require("../data/X");
+XJSON = mathjs.matrix(XJSON);
+
+var yJSON = require("../data/y");
+yJSON = mathjs.matrix(yJSON);
+
+module.exports = function logisticRegression() {
     console.log("Starting Logistic Regression...");
 
     var inputLayerSize = 400;
@@ -8,34 +19,19 @@ module.exports = function () {
 
     console.log("\nLoading data...\n");
 
-    var XJSON = require("../data/X");
-    var yJSON = require("../data/y");
-
-    XJSON = mathjs.matrix(XJSON);
-    yJSON = mathjs.matrix(yJSON);
-
     var m = XJSON._size[0];
 
-    function randperm(n) {
-        var i;
-        var numbers = [];
-        for (i = 0; i < n; i++) {
-            numbers[i] = i;
-        }
-        for (i = 0; i < n; i++) {
-            var pos = n - i - 1;
-            var spos = parseInt(Math.random() * (pos + 1));
-            var tmp = numbers[spos];
-            numbers[spos] = numbers[pos];
-            numbers[pos] = tmp;
-        }
-        return numbers
-    }
+    var randomIndices = randomPermutation(m);
+    var selectedX = mathjs.subset(
+        XJSON,
+        mathjs.index(
+            randomIndices.slice(0, 100),
+            mathjs.range(0, XJSON._size[1])
+        )
+    );
 
-    var randomIndices = randperm(m);
-    var selectedX = mathjs.subset(XJSON, mathjs.index(randomIndices.slice(0, 100), mathjs.range(0, XJSON._size[1])));
-
-    console.log("\nTesting lrCostFunction() with regularization...\n");
+    console.log("\nTesting lrCostFunction() "
+        + "with regularization...\n");
 
     var theta_t = mathjs.matrix([
         [ -2 ],
@@ -59,7 +55,6 @@ module.exports = function () {
     ]);
     var lambda_t = 3;
 
-    var lrCostFunction = require("./lrCostFunction");
     var [ J, grad ] = lrCostFunction(theta_t, X_t, y_t, lambda_t);
 
     console.log("\nCost: ", J, "\n");
@@ -72,15 +67,21 @@ module.exports = function () {
     console.log("\nTraining One-vs-All Logistic Regression...\n");
 
     var lambda = 0.1;
-    var oneVsAll = require("./oneVsAll");
     var allTheta = mathjs.ones(10, 401);
     allTheta = oneVsAll(XJSON, yJSON, numberOfLabels, lambda);
-    var predictOneVsAll = require("./predictOneVsAll");
     var predictions = predictOneVsAll(allTheta, XJSON);
     var predictionsEqualY = mathjs.clone(yJSON);
-    mathjs.map(predictionsEqualY, function (value, index, matrix) {
-        predictionsEqualY = mathjs.subset(predictionsEqualY, mathjs.index(index[0], index[1]), value === predictions[index[0]] ? 1 : 0 );
-    });
-    console.log("Training Set Accuracy: ", mathjs.multiply(mathjs.mean(predictionsEqualY), 100));
+    mathjs.map(
+        predictionsEqualY,
+        function predictionsEqualYCalculation(value, index, matrix) {
+            predictionsEqualY = mathjs.subset(
+                predictionsEqualY,
+                mathjs.index(index[0], index[1]),
+                value === predictions[index[0]] ? 1 : 0
+            );
+        }
+    );
+    console.log("Training Set Accuracy: ",
+        mathjs.multiply(mathjs.mean(predictionsEqualY), 100));
     console.log("Logistic Regression Complete");
 };
